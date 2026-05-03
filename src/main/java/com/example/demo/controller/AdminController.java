@@ -40,7 +40,7 @@ public class AdminController {
         // 🔹 Only last 10 non-admin users
         List<User> recentUsers = userRepository.findAll()
             .stream()
-            .filter(u -> u.getRole() != null && !u.getRole().trim().equalsIgnoreCase("admin"))
+            .filter(u -> u.getRole() != null && !u.getRole().trim().equalsIgnoreCase("ROLE_ADMIN"))
             .sorted((u1, u2) -> u2.getId().compareTo(u1.getId()))
             .limit(10)
             .toList();
@@ -57,7 +57,7 @@ public class AdminController {
 
         List<User> users = userRepository.findAll()
             .stream()
-            .filter(u -> u.getRole() != null && !u.getRole().trim().equalsIgnoreCase("admin"))
+            .filter(u -> u.getRole() != null && !u.getRole().trim().equalsIgnoreCase("ROLE_ADMIN"))
             .filter(u -> search == null || u.getName().toLowerCase().contains(search.toLowerCase()))
             .toList();
 
@@ -76,7 +76,7 @@ public class AdminController {
             .stream()
             .filter(acc -> acc.getUser() != null &&
                            acc.getUser().getRole() != null &&
-                           !acc.getUser().getRole().trim().equalsIgnoreCase("admin"))
+                           !acc.getUser().getRole().trim().equalsIgnoreCase("ROLE_ADMIN"))
             .filter(acc -> search == null || acc.getAccountNumber().toLowerCase().contains(search.toLowerCase()))
             .toList();
 
@@ -124,10 +124,18 @@ public class AdminController {
     // ❌ DELETE USER
     @GetMapping("/admin/user/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
+
+        // delete account first
+        Account acc = accountRepository.findByUserId(id);
+        if(acc != null){
+            accountRepository.delete(acc);
+        }
+
+        // then delete user
         userRepository.deleteById(id);
+
         return "redirect:/admin/users";
     }
-
     // 🏦 ACTIVATE / DEACTIVATE ACCOUNT
     @GetMapping("/admin/account/toggle/{id}")
     public String toggleAccount(@PathVariable Long id) {
